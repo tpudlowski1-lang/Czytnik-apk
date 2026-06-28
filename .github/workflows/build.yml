@@ -16,19 +16,10 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Zainstaluj Java 17
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
-
-      - name: Zainstaluj Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Zaakceptuj licencje i zainstaluj narzędzia
-        run: |
-          yes | sdkmanager --licenses
-          sdkmanager "build-tools;34.0.0" "platforms;android-33" "ndk;28.0.12433566"
 
       - name: Zainstaluj zależności systemowe
         run: |
@@ -43,10 +34,16 @@ jobs:
           pip install --upgrade pip
           pip install buildozer cython
 
-      - name: Skonfiguruj SDK dla buildozer
+      - name: Zaakceptuj licencje SDK
+        run: |
+          yes | $ANDROID_HOME/cmdline-tools/*/bin/sdkmanager --licenses || true
+          $ANDROID_HOME/cmdline-tools/*/bin/sdkmanager "build-tools;34.0.0" "platforms;android-33"
+
+      - name: Skonfiguruj buildozer żeby używał systemowego SDK i NDK
         run: |
           mkdir -p ~/.buildozer/android/platform
-          ln -s $ANDROID_HOME ~/.buildozer/android/platform/android-sdk
+          ln -sf $ANDROID_HOME ~/.buildozer/android/platform/android-sdk
+          ln -sf $ANDROID_NDK_HOME ~/.buildozer/android/platform/android-ndk-r27
 
       - name: Cache buildozer
         uses: actions/cache@v4
@@ -56,11 +53,16 @@ jobs:
           restore-keys: buildozer-
 
       - name: Kompiluj APK
+        env:
+          ANDROIDAPI: "33"
+          ANDROIDMINAPI: "21"
         run: buildozer -v android debug
 
-      - name: Wgraj APK
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
+          name: czytnik-apk
+          path: bin/*.apk
+          retention-days: 30        with:
           name: czytnik-apk
           path: bin/*.apk
           retention-days: 30
