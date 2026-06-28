@@ -39,7 +39,7 @@ jobs:
           yes | $ANDROID_HOME/cmdline-tools/*/bin/sdkmanager --licenses || true
           $ANDROID_HOME/cmdline-tools/*/bin/sdkmanager "build-tools;34.0.0" "platforms;android-33"
 
-      - name: Skonfiguruj buildozer żeby używał systemowego SDK i NDK
+      - name: Skonfiguruj buildozer
         run: |
           mkdir -p ~/.buildozer/android/platform
           ln -sf $ANDROID_HOME ~/.buildozer/android/platform/android-sdk
@@ -58,16 +58,6 @@ jobs:
           ANDROIDMINAPI: "21"
         run: buildozer -v android debug
 
-      - uses: actions/upload-artifact@v4
-        with:
-          name: czytnik-apk
-          path: bin/*.apk
-          retention-days: 30          name: czytnik-apk
-          path: bin/*.apk
-          retention-days: 30        with:
-          name: czytnik-apk
-          path: bin/*.apk
-          retention-days: 30
       - name: Wgraj APK
         uses: actions/upload-artifact@v4
         with:
