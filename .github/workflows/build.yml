@@ -25,10 +25,10 @@ jobs:
       - name: Zainstaluj Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Zaakceptuj licencje i zainstaluj build-tools
+      - name: Zaakceptuj licencje i zainstaluj narzędzia
         run: |
           yes | sdkmanager --licenses
-          sdkmanager "build-tools;34.0.0" "platforms;android-33" "ndk;25.2.9519653"
+          sdkmanager "build-tools;34.0.0" "platforms;android-33" "ndk;28.0.12433566"
 
       - name: Zainstaluj zależności systemowe
         run: |
@@ -43,6 +43,11 @@ jobs:
           pip install --upgrade pip
           pip install buildozer cython
 
+      - name: Skonfiguruj SDK dla buildozer
+        run: |
+          mkdir -p ~/.buildozer/android/platform
+          ln -s $ANDROID_HOME ~/.buildozer/android/platform/android-sdk
+
       - name: Cache buildozer
         uses: actions/cache@v4
         with:
@@ -50,17 +55,15 @@ jobs:
           key: buildozer-${{ hashFiles('buildozer.spec') }}
           restore-keys: buildozer-
 
-      - name: Skonfiguruj SDK dla buildozer
-        run: |
-          mkdir -p ~/.buildozer/android/platform
-          ln -s $ANDROID_HOME ~/.buildozer/android/platform/android-sdk
-
       - name: Kompiluj APK
-        env:
-          ANDROID_HOME: ${{ env.ANDROID_HOME }}
-        run: |
-          buildozer -v android debug
+        run: buildozer -v android debug
 
+      - name: Wgraj APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: czytnik-apk
+          path: bin/*.apk
+          retention-days: 30
       - name: Wgraj APK
         uses: actions/upload-artifact@v4
         with:
